@@ -12,13 +12,16 @@ namespace CraigsHelper
         public decimal Price { get; set; }
         public List<string> ImageUrls { get; set; }
         public string Body { get; set; }
-        public Dictionary<string,string> Attributes { get; set; }
-        public  Location Location { get; set; }
+        public Dictionary<string, string> Attributes { get; set; }
+        public Location Location { get; set; }
+        public DateTime PostedDate { get; set; }
+        public DateTime UpdatedDate { get; set; }
     }
 
     public class Location
     {
         public string Name { get; set; }
+        public string Address { get; set; }
         public double Longitude { get; set; }
         public double Latitude { get; set; }
     }

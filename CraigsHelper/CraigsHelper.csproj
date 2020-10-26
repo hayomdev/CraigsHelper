@@ -2,10 +2,25 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Company>hayomdev</Company>
+    <Copyright>2020</Copyright>
+    <Description>A simple package to help get craigslist sale postings into a C# model.</Description>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/hayomdev/CraigsHelper</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/hayomdev/CraigsHelper</RepositoryUrl>
+    <PackageTags>Craigslist</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.11.25" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

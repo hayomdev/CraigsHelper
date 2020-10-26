@@ -83,6 +83,11 @@ namespace CraigsHelper
 
                     post.Body = string.Join("\r\r", bodyNodes.Select(x => x.Replace("show contact info", "[CONTACT INFO REMOVED]")));
 
+                    var times = nodes.Where(x => x.Name == "time");
+                    post.PostedDate = DateTime.Parse(times.First().Attributes.Single(x => x.Name == "datetime").Value);
+                    if (times.Count() > 2)
+                        post.UpdatedDate = DateTime.Parse(times.Last().Attributes.Single(x => x.Name == "datetime").Value);
+
                     var attributeElements = nodes.Where(x => x.HasClass("attrgroup"));
 
                     if (attributeElements.Count() > 1)
@@ -91,11 +96,15 @@ namespace CraigsHelper
                     }
 
                     post.Attributes = new Dictionary<string, string>();
-                    foreach (var el in attributeElements.Last().Descendants("span"))
+
+                    if (attributeElements.Count() > 0)
                     {
-                        var key = el.InnerText.Split(':').First();
-                        var val = el.Descendants("b").FirstOrDefault()?.InnerText;
-                        post.Attributes.Add(key, val);
+                        foreach (var el in attributeElements.Last().Descendants("span"))
+                        {
+                            var key = el.InnerText.Split(':').First();
+                            var val = el.Descendants("b").FirstOrDefault()?.InnerText;
+                            post.Attributes.Add(key, val);
+                        }
                     }
 
                     var mapAttr = doc.GetElementbyId("map")?.Attributes;
@@ -104,6 +113,7 @@ namespace CraigsHelper
                         post.Location = new Location
                         {
                             Name = doc.DocumentNode.Descendants("small").FirstOrDefault()?.InnerText.Replace("(", "").Replace(")", ""),
+                            Address = doc.DocumentNode.SelectSingleNode("//div[contains(@class, 'mapaddress')]")?.InnerText,
                             Latitude = double.Parse(mapAttr.Single(x => x.Name == "data-latitude").Value),
                             Longitude = double.Parse(mapAttr.Single(x => x.Name == "data-longitude").Value)
                         };
@@ -135,63 +145,89 @@ namespace CraigsHelper
 
         ///<summary>Returns a PostListResult from a search Url</summary>
         ///<param name="searchUrl">The Craigslist search Url to convert to a list of Posts</param>
+        ///<param name="loadAll">Load all pages of results</param>
         ///<param name="localOnly">Include only local results. Default is true</param>
-        public static PostListResult GetPostsFromSearch(string searchUrl, bool localOnly = true)
+        public static PostListResult GetPostsFromSearch(string searchUrl, bool loadAll = false, bool localOnly = true)
         {
             var res = new PostListResult { HasError = false, Result = new List<Post>() };
 
             try
             {
                 HtmlDocument doc = new HtmlDocument();
-
+                
                 var web = new HtmlWeb();
-                try
+                var total = 0;
+                var loads = 0;
+                var loadsLeft = 0;
+                var start = 0;
+                do
                 {
+                    var newUrl = "";
                     if (!searchUrl.Contains("https://"))
-                        searchUrl = "https://" + searchUrl;
-                    doc = web.Load(searchUrl);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception("Invalid Url: " + searchUrl);
-                }
+                        newUrl = "https://" + searchUrl;
+                    else
+                        newUrl += searchUrl;
+                    newUrl += $"?s={start}";
+                    try
+                    { 
+                        doc = web.Load(newUrl);
+                        total = Int32.Parse(doc.DocumentNode.SelectSingleNode("//span[contains(@class, 'totalcount')]").InnerText);
+                        if (loadAll)
+                        {
+                            if (loads == 0)
+                            {
+                                loads = (int)Math.Ceiling((double)total / 120);
+                                loadsLeft = loads;
+                            }
+                            loadsLeft--;
+                            start += 120;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception("Invalid Url: " + searchUrl);
+                    }
 
-                try
-                {
-                    IEnumerable<HtmlNode> posts = doc.DocumentNode.SelectNodes("//a[contains(@class, 'result-image gallery')]");
-                    var urls = posts.SelectMany(x => x.Attributes).Where(x => x.Name == "href").Select(x => x.Value);
-                    if (localOnly)
+                    try
                     {
-                        var localId = searchUrl.Split('.').First();
-                        urls = urls.Where(x => x.Contains(localId));
+                        IEnumerable<HtmlNode> posts = doc.DocumentNode.SelectNodes("//a[contains(@class, 'result-image gallery')]");
+
+                        var urls = posts.SelectMany(x => x.Attributes).Where(x => x.Name == "href").Select(x => x.Value);
+                        if (localOnly)
+                        {
+                            var localId = searchUrl.Split('.').First();
+                            urls = urls.Where(x => x.Contains(localId));
+                        }
+                        foreach (var url in urls)
+                        {
+                            res.Result.Add(GetPost(url).Result);
+                        }
                     }
-                    var c = 0;
-                    foreach (var url in urls)
+                    catch
                     {
-                        Console.Write('\r' + c++ + "/" + urls.Count());
-                        res.Result.Add(GetPost(url).Result);
+                        throw new Exception("Invalid Craigslist search Url.");
                     }
                 }
-                catch
-                {
-                    throw new Exception("Invalid Craigslist search Url.");
+                while (loadAll && loadsLeft > 0);
                 }
-            }
             catch (Exception e)
             {
                 res.HasError = true;
                 res.ErrorMessage = e.Message;
             }
+   
+
             return res;
         }
 
         ///<summary>Returns a PostListResult from a search Url asynchronously</summary>
         ///<param name="searchUrl">The Craigslist search Url to convert to a list of Posts</param>
+        ///<param name="loadAll">Load all pages of results</param>
         ///<param name="localOnly">Include only local results. Default is true</param>
-        public static async Task<PostListResult> GetPostsFromSearchAsync(string searchUrl, bool localOnly = true)
+        public static async Task<PostListResult> GetPostsFromSearchAsync(string searchUrl, bool loadAll, bool localOnly = true)
         {
             var res = new PostListResult();
-            await Task.Run(() => { res = GetPostsFromSearch(searchUrl, localOnly); });
+            await Task.Run(() => { res = GetPostsFromSearch(searchUrl, loadAll, localOnly); });
             return res;
         }
     }

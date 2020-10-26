@@ -1,1 +1,6 @@
 .vs
+Tester
+bin
+obj
+CraigsHelper/bin
+CraigsHelper/obj
