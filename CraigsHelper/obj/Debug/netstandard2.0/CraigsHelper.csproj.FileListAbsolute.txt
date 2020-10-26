@@ -1,0 +1,8 @@
+C:\Users\cbtes\source\repos\CraigsHelper\CraigsHelper\bin\Debug\netstandard2.0\CraigsHelper.deps.json
+C:\Users\cbtes\source\repos\CraigsHelper\CraigsHelper\bin\Debug\netstandard2.0\CraigsHelper.dll
+C:\Users\cbtes\source\repos\CraigsHelper\CraigsHelper\obj\Debug\netstandard2.0\CraigsHelper.csprojAssemblyReference.cache
+C:\Users\cbtes\source\repos\CraigsHelper\CraigsHelper\obj\Debug\netstandard2.0\CraigsHelper.AssemblyInfoInputs.cache
+C:\Users\cbtes\source\repos\CraigsHelper\CraigsHelper\obj\Debug\netstandard2.0\CraigsHelper.AssemblyInfo.cs
+C:\Users\cbtes\source\repos\CraigsHelper\CraigsHelper\bin\Debug\netstandard2.0\CraigsHelper.pdb
+C:\Users\cbtes\source\repos\CraigsHelper\CraigsHelper\obj\Debug\netstandard2.0\CraigsHelper.dll
+C:\Users\cbtes\source\repos\CraigsHelper\CraigsHelper\obj\Debug\netstandard2.0\CraigsHelper.pdb
